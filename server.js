@@ -22,29 +22,6 @@ async function initDB() {
   console.log("PostgreSQL ready");
 }
 
-const io = require("socket.io")(3000, {
-  cors: { origin: "*" }
-});
-
-// Fake database
-const users = {
-  "nishant": "1234",
-  "rahul": "abcd"
-};
-
-io.on("connection", (socket) => {
-
-  socket.on("login", ({ username, password }) => {
-    if (users[username] && users[username] === password) {
-      socket.username = username;
-      socket.emit("loginSuccess");
-    } else {
-      socket.emit("loginError", "Invalid username or password");
-    }
-  });
-
-});
-
 // =====================
 // Server initialization
 // =====================
@@ -58,9 +35,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   transports: ["websocket", "polling"],
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" }
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -75,6 +50,15 @@ app.get("/", (req, res) => {
 const users = new Map();
 const MAX_USERS = 6;
 
+const allowedUsers = {
+  anshika: "1111",
+  nishant: "2222",
+  vipul: "3333",
+  rohit: "4444",
+  neha: "5555",
+  aman: "6666"
+};
+
 // =====================
 // Socket.IO logic
 // =====================
@@ -87,13 +71,23 @@ io.on("connection", (socket) => {
     return;
   }
 
-  socket.on("join", async (username) => {
+  socket.on("join", async ({ username, password }) => {
+
+    if (!allowedUsers[username]) {
+      socket.emit("join_error", "❌ Invalid username");
+      return;
+    }
+
+    if (allowedUsers[username] !== password) {
+      socket.emit("join_error", "❌ Wrong password");
+      return;
+    }
+
     users.set(socket.id, username);
 
     socket.broadcast.emit("user_joined", username);
     io.emit("users_list", Array.from(users.values()));
 
-    // Load last 50 messages
     const { rows } = await pool.query(
       `SELECT username, text, created_at
        FROM messages
@@ -135,20 +129,18 @@ io.on("connection", (socket) => {
 });
 
 // =====================
-// Start server AFTER DB
+// Start server
 // =====================
 const PORT = process.env.PORT || 3000;
 
 (async () => {
   try {
-    console.log("Connecting to PostgreSQL...");
     await initDB();
-
-    server.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (err) {
-    console.error("Startup error:", err);
+    console.error(err);
     process.exit(1);
   }
 })();
