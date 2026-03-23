@@ -65,7 +65,16 @@ socket.on("room_full", msg => {
 // =====================
 // MESSAGE HISTORY
 // =====================
+socket.on("message_history", messages => {
+  messagesDiv.innerHTML = "";
 
+  messages.forEach(msg => {
+    addMessage(`${msg.username}: ${msg.text}`, msg.created_at);
+  });
+
+  joinContainer.classList.add("hidden");
+  chatContainer.classList.remove("hidden");
+});
 // =====================
 // SEND MESSAGE
 // =====================
