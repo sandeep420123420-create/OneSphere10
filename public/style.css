@@ -1,71 +1,119 @@
-/* ===== PAGE BACKGROUND ===== */
-body {
+* {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 🌈 Animated Gradient Background */
+.background {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(270deg, #6a11cb, #2575fc, #ff6a00, #ee0979);
+  background-size: 800% 800%;
+  animation: gradientMove 15s ease infinite;
+  z-index: -2;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* ✨ Floating Blur Circles (Premium Feel) */
+.background::before,
+.background::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.6;
+}
+
+.background::before {
+  width: 300px;
+  height: 300px;
+  background: #ff6a00;
+  top: 10%;
+  left: 20%;
+}
+
+.background::after {
+  width: 400px;
+  height: 400px;
+  background: #00c6ff;
+  bottom: 10%;
+  right: 20%;
+}
+
+
+/* 💎 Center Container */
+.container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-/* ===== HIDE CLASS ===== */
-.hidden {
-  display: none;
-}
+/* 🔥 Glassmorphism Login Box */
+.login-box {
+  width: 350px;
+  padding: 30px;
+  border-radius: 20px;
 
-/* ===== MAIN CONTAINERS ===== */
-#join-container,
-#chat-container {
-  background: #ffffff;
-  width: 390px;
-  padding: 40px;
-  border-radius: 9px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-}
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
 
-/* ===== JOIN SCREEN ===== */
-#join-container h2 {
   text-align: center;
-  margin-bottom: 20px;
-  color:black;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 
-#join-container input {
+/* Inputs */
+.input-box {
+  margin: 15px 0;
+}
+
+.input-box input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
   outline: none;
 }
 
-#join-container input:focus {
-  border-color: black;
-}
-
-#join-btn {
-  width: 10vh;
-  padding: 10px;
-  background:navy;
-  color: white;
+/* Button */
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
-  border-radius: 6px;
-  font-size: 15px;
+  margin-top: 10px;
   cursor: pointer;
+  background: linear-gradient(45deg, #ff6a00, #ee0979);
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
 }
 
-#join-btn:hover {
-  background:gray;
+button:hover {
+  transform: scale(1.05);
 }
 
-#join-error {
-  margin-top: 6px;
-  text-align: center;
-  color: red;
-  font-size: 0.9em;
+/* Signup text */
+.signup {
+  margin-top: 15px;
+  font-size: 14px;
 }
-
 /* ===== CHAT HEADER ===== */
 #users {
   text-align: center;
