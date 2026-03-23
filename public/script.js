@@ -11,6 +11,35 @@ const messagesDiv = document.getElementById("messages");
 const usersDiv = document.getElementById("users");
 const joinError = document.getElementById("join-error");
 
+const socket = io("http://localhost:3000");
+
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("login-btn");
+const joinError = document.getElementById("join-error");
+
+loginBtn.addEventListener("click", () => {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!username || !password) {
+    joinError.innerText = "Enter username & password!";
+    return;
+  }
+
+  socket.emit("login", { username, password });
+});
+
+// Server response
+socket.on("loginSuccess", () => {
+  document.getElementById("join-container").classList.add("hidden");
+  document.getElementById("chat-container").classList.remove("hidden");
+});
+
+socket.on("loginError", (msg) => {
+  joinError.innerText = msg;
+});
+
 //Load message history for new joiners.
 socket.on("message_history", messages => {
   messagesDiv.innerHTML = "";
