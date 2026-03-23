@@ -88,12 +88,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("user_joined", username);
     io.emit("users_list", Array.from(users.values()));
 
-    const { rows } = await pool.query(
-      `SELECT username, text, created_at
-       FROM messages
-       ORDER BY created_at ASC
-       LIMIT 50`
-    );
+    const { rows } = await pool.query
 
     socket.emit("message_history", rows);
   });
