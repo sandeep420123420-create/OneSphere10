@@ -10,18 +10,26 @@
   <!-- Join screen -->
   <div id="join-container">
     <h2>Join Chat</h2>
-    <input id="username" placeholder="Enter your name" />
+    
+     <!-- Username -->
+    <input 
+      id="username" 
+      type="text" 
+      placeholder="Enter username" 
+    >
 
-    <input id="username" placeholder="Enter username" />
-<input id="password" type="password" placeholder="Enter password" />
-<button id="login-btn">Login</button>
-<p id="join-error"></p>
-
+    <!-- Password -->
+    <input 
+      id="password" 
+      type="password" 
+      placeholder="Enter password" 
+    >
     
     <button id="join-btn">Join</button>
     <p id="join-error"></p>
   </div>
 
+    
   <!-- Chat screen -->
   <div id="chat-container" class="hidden">
     <div id="users"></div>
@@ -29,7 +37,7 @@
     <div id="messages"></div>
 
     <div id="input-area">
-      <input id="message-input" placeholder="Type a message..." />
+      <input id="message-input" placeholder="Type a message..." >
       <button id="send-btn">Send</button>
     </div>
   </div>
