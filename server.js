@@ -53,8 +53,8 @@ const MAX_USERS = 6;
 const allowedUsers = {
   anshika: "1111",
   nishant: "2222",
-  kavya: "3333",
-  lakshay: "4444",
+  vipul: "3333",
+  rohit: "4444",
   neha: "5555",
   aman: "6666"
 };
@@ -88,7 +88,12 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("user_joined", username);
     io.emit("users_list", Array.from(users.values()));
 
-    const { rows } = await pool.query
+    const { rows } = await pool.query(
+      `SELECT username, text, created_at
+       FROM messages
+       ORDER BY created_at ASC
+       LIMIT 50`
+    );
 
     socket.emit("message_history", rows);
   });
