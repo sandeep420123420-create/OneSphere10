@@ -53,8 +53,8 @@ const MAX_USERS = 6;
 const allowedUsers = {
   anshika: "1111",
   nishant: "2222",
-  vipul: "3333",
-  rohit: "4444",
+  kavya: "3333",
+  lakshay: "4444",
   neha: "5555",
   aman: "6666"
 };
