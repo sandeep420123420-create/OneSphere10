@@ -7,26 +7,27 @@
 </head>
 <body>
 
- <div class="background"></div>
+  <!-- Join screen -->
+  <div id="join-container">
+    <h2>Join Chat</h2>
+    
+     <!-- Username -->
+    <input 
+      id="username" 
+      type="text" 
+      placeholder="Enter username" 
+    >
 
-  <div class="container">
-    <div class="login-box">
-      <h2>Welcome Back!</h2>
-      <p>Login to join the chat</p>
-
-      <div class="input-box">
-        <input type="text" placeholder="Username">
-      </div>
-
-      <div class="input-box">
-        <input type="password" placeholder="Password">
-      </div>
-
-      <button>Login </button>
-
-      <p> Yahan aate hi, emojis tumhare friend ban jayenge… ya shayad boss.</p>
-      
-    </div>
+    <!-- Password -->
+    <input 
+      id="password" 
+      type="password" 
+      placeholder="Enter password" 
+    >
+    
+    <button id="join-btn">Join</button>
+    <p id="join-error"></p>
+  </div>
 
     
   <!-- Chat screen -->
@@ -46,3 +47,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
