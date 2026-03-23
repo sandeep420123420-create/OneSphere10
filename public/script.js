@@ -6,8 +6,8 @@ const socket = io({
 const USERS = {
   anshika: "1111",
   nishant: "2222",
-  kavya: "3333",
-  lakshay: "4444",
+  vipul: "3333",
+  rohit: "4444",
   neha: "5555",
   aman: "6666"
 };
@@ -65,10 +65,17 @@ socket.on("room_full", msg => {
 // =====================
 // MESSAGE HISTORY
 // =====================
+socket.on("message_history", messages => {
+  messagesDiv.innerHTML = "";
+
+  messages.forEach(msg => {
+    addMessage(`${msg.username}: ${msg.text}`, msg.created_at);
+  });
 
   joinContainer.classList.add("hidden");
   chatContainer.classList.remove("hidden");
 });
+
 // =====================
 // SEND MESSAGE
 // =====================
