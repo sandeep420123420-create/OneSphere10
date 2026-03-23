@@ -22,6 +22,29 @@ async function initDB() {
   console.log("PostgreSQL ready");
 }
 
+const io = require("socket.io")(3000, {
+  cors: { origin: "*" }
+});
+
+// Fake database
+const users = {
+  "nishant": "1234",
+  "rahul": "abcd"
+};
+
+io.on("connection", (socket) => {
+
+  socket.on("login", ({ username, password }) => {
+    if (users[username] && users[username] === password) {
+      socket.username = username;
+      socket.emit("loginSuccess");
+    } else {
+      socket.emit("loginError", "Invalid username or password");
+    }
+  });
+
+});
+
 // =====================
 // Server initialization
 // =====================
