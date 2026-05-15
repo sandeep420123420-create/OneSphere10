@@ -1,140 +1,146 @@
-const socket = io({
-  transports: ["websocket"]
-});
+const socket = io();
 
-// Client-side helper (UI only)
-const USERS = {
-  anshika: "1111",
-  nishant: "2222",
-  vipul: "3333",
-  rohit: "4444",
-  neha: "5555",
-  aman: "6666"
-};
+const SECRET_KEY = "onesphere_secret";
 
-const joinContainer = document.getElementById("join-container");
-const chatContainer = document.getElementById("chat-container");
-const joinBtn = document.getElementById("join-btn");
-const sendBtn = document.getElementById("send-btn");
+const loginPage = document.getElementById("loginPage");
+const chatPage = document.getElementById("chatPage");
 
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
-const messageInput = document.getElementById("message-input");
+
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+
 const messagesDiv = document.getElementById("messages");
 const usersDiv = document.getElementById("users");
-const joinError = document.getElementById("join-error");
+const typingDiv = document.getElementById("typing");
 
-// =====================
-// JOIN CHAT
-// =====================
-joinBtn.onclick = () => {
+const errorDiv = document.getElementById("error");
+
+let currentUser = "";
+
+loginBtn.onclick = () => {
+
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
 
-  if (!username || !password) {
-    alert("Username and Password are required!");
+  if(!username || !password){
+    errorDiv.innerText = "All fields required";
     return;
   }
 
-  if (!USERS[username]) {
-    alert("❌ Invalid Username!");
-    return;
-  }
-
-  if (USERS[username] !== password) {
-    alert("❌ Wrong Password!");
-    passwordInput.value = "";
-    return;
-  }
-
-  // ✅ FIX 1: send username + password
-  socket.emit("join", { username, password });
+  socket.emit("login", {
+    username,
+    password
+  });
 };
 
-// =====================
-// SERVER ERRORS
-// =====================
-socket.on("join_error", msg => {
-  alert(msg);
+socket.on("login_success", data => {
+
+  currentUser = data.username;
+
+  loginPage.classList.add("hidden");
+
+  chatPage.classList.remove("hidden");
 });
 
-socket.on("room_full", msg => {
-  alert(msg);
+socket.on("login_error", msg => {
+  errorDiv.innerText = msg;
 });
 
-// =====================
-// MESSAGE HISTORY
-// =====================
-socket.on("message_history", messages => {
-  messagesDiv.innerHTML = "";
+socket.on("users", users => {
 
-  messages.forEach(msg => {
-    addMessage(`${msg.username}: ${msg.text}`, msg.created_at);
-  });
-
-  joinContainer.classList.add("hidden");
-  chatContainer.classList.remove("hidden");
+  usersDiv.innerHTML = `
+    <h3>Online Users</h3>
+    ${users.map(u => `<p>🟢 ${u}</p>`).join("")}
+  `;
 });
 
-// =====================
-// SEND MESSAGE
-// =====================
 sendBtn.onclick = sendMessage;
+
 messageInput.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
+
+  if(e.key === "Enter"){
+    sendMessage();
+  }
+
+  socket.emit("typing", currentUser);
 });
 
-function sendMessage() {
-  const msg = messageInput.value.trim();
-  if (!msg) return;
+function sendMessage(){
 
-  socket.emit("message", msg);
+  const msg = messageInput.value.trim();
+
+  if(!msg) return;
+
+  const encrypted = CryptoJS.AES.encrypt(
+    msg,
+    SECRET_KEY
+  ).toString();
+
+  socket.emit("message", encrypted);
+
   messageInput.value = "";
 }
 
-// =====================
-// RECEIVE MESSAGE
-// =====================
 socket.on("message", data => {
-  addMessage(`${data.user}: ${data.text}`, data.time);
+
+  const bytes = CryptoJS.AES.decrypt(
+    data.text,
+    SECRET_KEY
+  );
+
+  const decrypted = bytes.toString(
+    CryptoJS.enc.Utf8
+  );
+
+  addMessage(
+    `${data.user}: ${decrypted}`
+  );
 });
 
-// =====================
-// USER EVENTS
-// =====================
-socket.on("user_joined", username => {
-  addSystemMessage(`${username} joined`);
+socket.on("system", msg => {
+
+  addSystem(msg);
 });
 
-socket.on("user_left", username => {
-  addSystemMessage(`${username} left`);
+socket.on("typing", user => {
+
+  typingDiv.innerText = `${user} is typing...`;
+
+  setTimeout(() => {
+    typingDiv.innerText = "";
+  }, 1500);
 });
 
-socket.on("users_list", users => {
-  usersDiv.textContent = `Users (${users.length}/6): ${users.join(", ")}`;
-});
+function addMessage(text){
 
-// =====================
-// HELPERS
-// =====================
-function addMessage(text, time) {
   const div = document.createElement("div");
+
   div.className = "message";
 
-  if (time) {
-    const timeStr = new Date(time).toLocaleTimeString();
-    div.textContent = `${text} [${timeStr}]`;
-  } else {
-    div.textContent = text;
-  }
+  div.innerText = text;
 
   messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  messagesDiv.scrollTop =
+    messagesDiv.scrollHeight;
 }
 
-function addSystemMessage(text) {
+function addSystem(text){
+
   const div = document.createElement("div");
+
   div.className = "message system";
-  div.textContent = text;
+
+  div.innerText = text;
+
   messagesDiv.appendChild(div);
 }
+
+logoutBtn.onclick = () => {
+  location.reload();
+};
