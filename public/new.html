@@ -1,77 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OneSphere</title>
-<link rel="stylesheet" href="new.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OneSphere Pro</title>
+
+  <link rel="stylesheet" href="chatchat.css"/>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
+
 <body>
 
-<div class="container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <h2 class="logo" >OneSphere</h2>
-        <img src="final onesh[erre.png">
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
 
-        <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a href="weather.html">Weather</a>
-            <a href="#">Maps</a>
-            <a href="#">News</a>
-            <a href="#">Quiz Challanger</a>
-            <a href="index.html">Chat</a>
-        </nav>
-    </aside>
+  <div class="login-box">
 
-    <!-- Main Content -->
-    <main class="main">
+    <h1>OneSphere Pro</h1>
 
-        <header class="topbar">
-            <h1>Dashboard</h1>
-            <button id="themeToggle">🌙</button>
-            <div id="clock" class="clock"></div>
+    <p>Secure Group Chat</p>
 
-        </header>
+    <input type="text" id="username" placeholder="Username"/>
 
-        <section class="cards">
-            <div class="card" >
-                <div class="icon">🌤</div>
-                <h3>Weather</h3>
-                <p>Live weather insights</p>
-            </div>
+    <input type="password" id="password" placeholder="Password"/>
 
-            <div class="card">
-                <div class="icon">🗺</div>
-                <h3>Maps</h3>
-                <p>Location & navigation</p>
-            </div>
+    <button id="loginBtn">Login</button>
 
-            <div class="card">
-                <div class="icon">📰</div>
-                <h3>News</h3>
-                <p>Global headlines</p>
-            </div>
+    <div id="error"></div>
 
-            <div class="card">
-                <div class="icon">📝</div>
-                <h3>Quiz</h3>
-                <p>Quiz Challanger</p>
-            </div>
-
-            <div class="card">
-                <div class="icon">💬</div>
-                <h3>Chat</h3>
-                <p>Real-time messaging</p>
-            </div>
-
-        </section>
-
-    </main>
-    
+  </div>
 
 </div>
 
-<script src="new .js".js></script>
+<!-- CHAT PAGE -->
+<div class="chat-page hidden" id="chatPage">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <h2>OneSphere</h2>
+
+    <div id="users"></div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="topbar">
+
+      <h1>Secure Group Chat</h1>
+
+      <button id="logoutBtn">Logout</button>
+
+    </header>
+
+    <div id="messages"></div>
+
+    <div id="typing"></div>
+
+    <div class="input-area">
+
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type message..."
+      />
+
+      <button id="sendBtn">Send</button>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script src="chatchat.js"></script>
+
 </body>
 </html>
