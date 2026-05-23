@@ -1,20 +1,56 @@
+// =====================
+// Database initialization (PostgreSQL)
+// =====================
+const { Pool } = require("pg");
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false
+});
+
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      username TEXT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  console.log("PostgreSQL ready");
+}
+
+// =====================
+// Server initialization
+// =====================
 const express = require("express");
-
 const http = require("http");
-
+const path = require("path");
 const { Server } = require("socket.io");
 
-const path = require("path");
-
 const app = express();
-
 const server = http.createServer(app);
 
-const io = new Server(server);
+const io = new Server(server, {
+  transports: ["websocket", "polling"],
+  cors: { origin: "*" }
+});
 
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "public")));
 
-const USERS = {
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// =====================
+// Chat state
+// =====================
+const users = new Map();
+const MAX_USERS = 6;
+
+const allowedUsers = {
   anshika: "1111",
   nishant: "2222",
   vipul: "3333",
@@ -23,106 +59,88 @@ const USERS = {
   aman: "6666"
 };
 
-const onlineUsers = new Map();
+// =====================
+// Socket.IO logic
+// =====================
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
 
-const roomMessages = [];
+  if (users.size >= MAX_USERS) {
+    socket.emit("room_full", "Chat room is full (max 6 users)");
+    socket.disconnect();
+    return;
+  }
 
-io.on("connection", socket => {
+  socket.on("join", async ({ username, password }) => {
 
-  console.log("User Connected");
-
-  socket.on("login", data => {
-
-    const { username, password } = data;
-
-    if(!USERS[username]){
-
-      socket.emit(
-        "login_error",
-        "Invalid Username"
-      );
-
+    if (!allowedUsers[username]) {
+      socket.emit("join_error", "❌ Invalid username");
       return;
     }
 
-    if(USERS[username] !== password){
-
-      socket.emit(
-        "login_error",
-        "Wrong Password"
-      );
-
+    if (allowedUsers[username] !== password) {
+      socket.emit("join_error", "❌ Wrong password");
       return;
     }
 
-    onlineUsers.set(socket.id, username);
+    users.set(socket.id, username);
 
-    socket.username = username;
+    socket.broadcast.emit("user_joined", username);
+    io.emit("users_list", Array.from(users.values()));
 
-    socket.join("global");
+    const { rows } = await pool.query(
+      `SELECT username, text, created_at
+       FROM messages
+       ORDER BY created_at ASC
+       LIMIT 50`
+    );
 
-    socket.emit("login_success", {
-      username
+    socket.emit("message_history", rows);
+  });
+
+  socket.on("message", async (msg) => {
+    const username = users.get(socket.id);
+    if (!username) return;
+
+    const result = await pool.query(
+      `INSERT INTO messages (username, text)
+       VALUES ($1, $2)
+       RETURNING created_at`,
+      [username, msg]
+    );
+
+    io.emit("message", {
+      user: username,
+      text: msg,
+      time: result.rows[0].created_at
     });
-
-    io.emit(
-      "users",
-      Array.from(onlineUsers.values())
-    );
-
-    socket.broadcast.emit(
-      "system",
-      `${username} joined chat`
-    );
-
-    // NEW USER CANNOT SEE OLD MESSAGES
-    // No old messages sent here
-  });
-
-  socket.on("typing", user => {
-
-    socket.broadcast.emit("typing", user);
-  });
-
-  socket.on("message", encryptedMsg => {
-
-    if(!socket.username) return;
-
-    const msgData = {
-      user: socket.username,
-      text: encryptedMsg
-    };
-
-    roomMessages.push(msgData);
-
-    io.to("global").emit(
-      "message",
-      msgData
-    );
   });
 
   socket.on("disconnect", () => {
+    const username = users.get(socket.id);
+    if (!username) return;
 
-    if(socket.username){
+    users.delete(socket.id);
+    socket.broadcast.emit("user_left", username);
+    io.emit("users_list", Array.from(users.values()));
 
-      onlineUsers.delete(socket.id);
-
-      io.emit(
-        "users",
-        Array.from(onlineUsers.values())
-      );
-
-      socket.broadcast.emit(
-        "system",
-        `${socket.username} left chat`
-      );
-    }
+    console.log("User disconnected:", socket.id);
   });
 });
 
-server.listen(3000, () => {
+// =====================
+// Start server
+// =====================
+const PORT = process.env.PORT || 3000;
 
-  console.log(
-    "Server Running on Port 3000"
-  );
-});
+(async () => {
+  try {
+    await initDB();
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+})();
